@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+  "migrate": "node database/migrate.js", 
+  "seed": "node database/seed.js",
   "dev": "nodemon server.js",
   "start": "node server.js"
 },
