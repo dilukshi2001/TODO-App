@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import TodoCard from "../components/TodoCard";
 import AlertMessage from "../components/AlertMessage";
 import ConfirmModal from "../components/ConfirmModal";
+import EditTodoModal from "../components/EditTodoModal";
 
 function Dashboard() {
   const [todos, setTodos] = useState([]);
@@ -23,7 +24,10 @@ function Dashboard() {
 
   const fetchTodos = async () => {
     try {
-      const response = await api.get(`/todos?search=${search}&status=${status}`);
+      const response = await api.get(
+        `/todos?search=${search}&status=${status}`
+      );
+
       setTodos(response.data);
     } catch {
       setError("Failed to load todos");
@@ -36,6 +40,7 @@ function Dashboard() {
 
   const handleEdit = (todo) => {
     setEditingTodo(todo);
+
     setFormData({
       title: todo.title,
       description: todo.description || "",
@@ -47,6 +52,11 @@ function Dashboard() {
   const handleUpdate = async (e) => {
     e.preventDefault();
 
+    if (!formData.title || !formData.due_date || !formData.due_time) {
+      setError("Title, date and time are required");
+      return;
+    }
+
     try {
       await api.put(`/todos/${editingTodo.id}`, {
         ...formData,
@@ -54,17 +64,37 @@ function Dashboard() {
       });
 
       setEditingTodo(null);
-      setFormData({ title: "", description: "", due_date: "", due_time: "" });
+
+      setFormData({
+        title: "",
+        description: "",
+        due_date: "",
+        due_time: "",
+      });
+
       fetchTodos();
     } catch {
       setError("Todo update failed");
     }
   };
 
+  const handleCancelEdit = () => {
+    setEditingTodo(null);
+
+    setFormData({
+      title: "",
+      description: "",
+      due_date: "",
+      due_time: "",
+    });
+  };
+
   const confirmDelete = async () => {
     try {
       await api.delete(`/todos/${deleteId}`);
+
       setDeleteId(null);
+
       fetchTodos();
     } catch {
       setError("Delete failed");
@@ -72,7 +102,8 @@ function Dashboard() {
   };
 
   const handleStatusChange = async (todo) => {
-    const newStatus = todo.status === "completed" ? "pending" : "completed";
+    const newStatus =
+      todo.status === "completed" ? "pending" : "completed";
 
     try {
       await api.put(`/todos/${todo.id}`, {
@@ -98,18 +129,26 @@ function Dashboard() {
           <div className="list-header">
             <div>
               <h3>Upcoming Todos</h3>
-              <p className="small-text">Find Your Latest Upcoming ToDos</p>
+
+              <p className="small-text">
+                Find your latest upcoming tasks
+              </p>
             </div>
 
             <div className="filters">
               <input
+                className="form-control"
                 type="text"
                 placeholder="Search todo..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
 
-              <select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <select
+                className="form-select"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
                 <option value="all">All</option>
                 <option value="pending">Pending</option>
                 <option value="completed">Completed</option>
@@ -118,54 +157,6 @@ function Dashboard() {
           </div>
 
           <AlertMessage message={error} />
-
-          {editingTodo && (
-            <form className="edit-form" onSubmit={handleUpdate}>
-              <h3>Edit Todo</h3>
-
-              <input
-                type="text"
-                placeholder="Todo title"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-              />
-
-              <textarea
-                placeholder="Todo description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-              />
-
-              <input
-                type="date"
-                value={formData.due_date}
-                onChange={(e) =>
-                  setFormData({ ...formData, due_date: e.target.value })
-                }
-              />
-
-              <input
-                type="time"
-                value={formData.due_time}
-                onChange={(e) =>
-                  setFormData({ ...formData, due_time: e.target.value })
-                }
-              />
-
-              <button type="submit">Update Todo</button>
-              <button
-                type="button"
-                className="cancel-btn"
-                onClick={() => setEditingTodo(null)}
-              >
-                Cancel
-              </button>
-            </form>
-          )}
 
           {todos.length === 0 ? (
             <p className="empty-text">No todos found</p>
@@ -184,6 +175,15 @@ function Dashboard() {
           )}
         </section>
       </main>
+
+      {editingTodo && (
+        <EditTodoModal
+          formData={formData}
+          setFormData={setFormData}
+          onUpdate={handleUpdate}
+          onCancel={handleCancelEdit}
+        />
+      )}
 
       {deleteId && (
         <ConfirmModal

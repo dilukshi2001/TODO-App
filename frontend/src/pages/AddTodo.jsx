@@ -6,8 +6,6 @@ import AlertMessage from "../components/AlertMessage";
 
 function AddTodo() {
   const navigate = useNavigate();
-
-  // Prevent selecting past dates
   const today = new Date().toISOString().split("T")[0];
 
   const [formData, setFormData] = useState({
@@ -43,7 +41,6 @@ function AddTodo() {
 
       setSuccess("Todo added successfully");
 
-      // Clear form
       setFormData({
         title: "",
         description: "",
@@ -51,28 +48,15 @@ function AddTodo() {
         due_time: "",
       });
 
-      // Redirect after short delay
       setTimeout(() => {
         navigate("/dashboard");
       }, 800);
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Failed to add todo"
-      );
+      setError(err.response?.data?.message || "Failed to add todo");
     }
   };
 
   const handleCancel = () => {
-    setFormData({
-      title: "",
-      description: "",
-      due_date: "",
-      due_time: "",
-    });
-
-    setError("");
-    setSuccess("");
-
     navigate("/dashboard");
   };
 
@@ -83,51 +67,80 @@ function AddTodo() {
       <main className="page-content">
         <section className="todo-form-card centered-card">
           <h3>Add New Todo</h3>
-
-          <p className="small-text">
-            Create and schedule your upcoming tasks
-          </p>
+          <p className="small-text">Create and schedule your upcoming tasks</p>
 
           <AlertMessage type="error" message={error} />
           <AlertMessage type="success" message={success} />
 
-          <form onSubmit={handleAddTodo}>
-            <input
-              type="text"
-              name="title"
-              placeholder="Todo title"
-              value={formData.title}
-              onChange={handleChange}
-            />
+          <form onSubmit={handleAddTodo} className="d-flex flex-column gap-3">
 
-            <textarea
-              name="description"
-              placeholder="Todo description"
-              value={formData.description}
-              onChange={handleChange}
-            />
+            <div>
+              <label className="form-label fw-semibold">
+                Todo Title
+              </label>
 
-            <input
-              type="date"
-              name="due_date"
-              min={today}
-              value={formData.due_date}
-              onChange={handleChange}
-            />
+              <input
+                className="form-control py-2"
+                type="text"
+                name="title"
+                placeholder="Enter todo title"
+                value={formData.title}
+                onChange={handleChange}
+              />
+            </div>
 
-            <input
-              type="time"
-              name="due_time"
-              value={formData.due_time}
-              onChange={handleChange}
-            />
+            <div>
+              <label className="form-label fw-semibold">
+                Description
+              </label>
 
-            <div className="form-buttons">
-              <button type="submit">Add Todo</button>
+              <textarea
+                className="form-control py-2"
+                name="description"
+                placeholder="Enter todo description"
+                value={formData.description}
+                onChange={handleChange}
+                rows="4"
+              />
+            </div>
+
+            <div>
+              <label className="form-label fw-semibold">
+                Due Date
+              </label>
+
+              <input
+                className="form-control py-2"
+                type="date"
+                name="due_date"
+                min={today}
+                value={formData.due_date}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <label className="form-label fw-semibold">
+                Due Time
+              </label>
+
+              <input
+                className="form-control py-2"
+                type="time"
+                name="due_time"
+                value={formData.due_time}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-buttons mt-2">
+              <button className="btn btn-primary" type="submit">
+                Add Todo
+              </button>
 
               <button
                 type="button"
-                className="cancel-btn"
+                className="btn btn-secondary"
                 onClick={handleCancel}
               >
                 Cancel
