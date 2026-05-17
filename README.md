@@ -14,7 +14,7 @@ Frontend:
 * React.js
 * React Router DOM
 * Axios
-* CSS
+* Bootstrap+CSS
 
 Backend:
 
