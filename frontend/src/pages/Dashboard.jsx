@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import Navbar from "../components/Navbar";
+import TodoCard from "../components/TodoCard";
+import AlertMessage from "../components/AlertMessage";
+import ConfirmModal from "../components/ConfirmModal";
 
 function Dashboard() {
-  const navigate = useNavigate();
-
-  const user = JSON.parse(localStorage.getItem("user"));
-
   const [todos, setTodos] = useState([]);
+  const [editingTodo, setEditingTodo] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    due_date: "",
+    due_time: "",
   });
 
-  const [editingTodo, setEditingTodo] = useState(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [error, setError] = useState("");
@@ -22,7 +25,7 @@ function Dashboard() {
     try {
       const response = await api.get(`/todos?search=${search}&status=${status}`);
       setTodos(response.data);
-    } catch (err) {
+    } catch {
       setError("Failed to load todos");
     }
   };
@@ -31,56 +34,37 @@ function Dashboard() {
     fetchTodos();
   }, [search, status]);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    if (!formData.title) {
-      setError("Todo title is required");
-      return;
-    }
-
-    try {
-      if (editingTodo) {
-        await api.put(`/todos/${editingTodo.id}`, {
-          title: formData.title,
-          description: formData.description,
-          status: editingTodo.status,
-        });
-        setEditingTodo(null);
-      } else {
-        await api.post("/todos", formData);
-      }
-
-      setFormData({ title: "", description: "" });
-      fetchTodos();
-    } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
-    }
-  };
-
   const handleEdit = (todo) => {
     setEditingTodo(todo);
     setFormData({
       title: todo.title,
       description: todo.description || "",
+      due_date: todo.due_date?.slice(0, 10) || "",
+      due_time: todo.due_time?.slice(0, 5) || "",
     });
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this todo?");
-
-    if (!confirmDelete) return;
+  const handleUpdate = async (e) => {
+    e.preventDefault();
 
     try {
-      await api.delete(`/todos/${id}`);
+      await api.put(`/todos/${editingTodo.id}`, {
+        ...formData,
+        status: editingTodo.status,
+      });
+
+      setEditingTodo(null);
+      setFormData({ title: "", description: "", due_date: "", due_time: "" });
+      fetchTodos();
+    } catch {
+      setError("Todo update failed");
+    }
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await api.delete(`/todos/${deleteId}`);
+      setDeleteId(null);
       fetchTodos();
     } catch {
       setError("Delete failed");
@@ -94,6 +78,8 @@ function Dashboard() {
       await api.put(`/todos/${todo.id}`, {
         title: todo.title,
         description: todo.description,
+        due_date: todo.due_date?.slice(0, 10),
+        due_time: todo.due_time,
         status: newStatus,
       });
 
@@ -103,69 +89,17 @@ function Dashboard() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
-
   return (
     <div className="dashboard">
-      <nav className="navbar">
-        <div>
-          <h2>Todo Manager</h2>
-          <p>Hello, {user?.name}</p>
-        </div>
+      <Navbar />
 
-        <button className="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
-      </nav>
-
-      <main className="dashboard-content">
-        <section className="todo-form-card">
-          <h3>{editingTodo ? "Edit Todo" : "Create Todo"}</h3>
-
-          {error && <div className="error-box">{error}</div>}
-
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              name="title"
-              placeholder="Todo title"
-              value={formData.title}
-              onChange={handleChange}
-            />
-
-            <textarea
-              name="description"
-              placeholder="Todo description"
-              value={formData.description}
-              onChange={handleChange}
-            />
-
-            <button type="submit">
-              {editingTodo ? "Update Todo" : "Add Todo"}
-            </button>
-
-            {editingTodo && (
-              <button
-                type="button"
-                className="cancel-btn"
-                onClick={() => {
-                  setEditingTodo(null);
-                  setFormData({ title: "", description: "" });
-                }}
-              >
-                Cancel
-              </button>
-            )}
-          </form>
-        </section>
-
+      <main className="page-content">
         <section className="todo-list-card">
           <div className="list-header">
-            <h3>My Todos</h3>
+            <div>
+              <h3>Upcoming Todos</h3>
+              <p className="small-text">Find Your Latest Upcoming ToDos</p>
+            </div>
 
             <div className="filters">
               <input
@@ -183,50 +117,81 @@ function Dashboard() {
             </div>
           </div>
 
+          <AlertMessage message={error} />
+
+          {editingTodo && (
+            <form className="edit-form" onSubmit={handleUpdate}>
+              <h3>Edit Todo</h3>
+
+              <input
+                type="text"
+                placeholder="Todo title"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+              />
+
+              <textarea
+                placeholder="Todo description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+              />
+
+              <input
+                type="date"
+                value={formData.due_date}
+                onChange={(e) =>
+                  setFormData({ ...formData, due_date: e.target.value })
+                }
+              />
+
+              <input
+                type="time"
+                value={formData.due_time}
+                onChange={(e) =>
+                  setFormData({ ...formData, due_time: e.target.value })
+                }
+              />
+
+              <button type="submit">Update Todo</button>
+              <button
+                type="button"
+                className="cancel-btn"
+                onClick={() => setEditingTodo(null)}
+              >
+                Cancel
+              </button>
+            </form>
+          )}
+
           {todos.length === 0 ? (
             <p className="empty-text">No todos found</p>
           ) : (
             <div className="todo-grid">
               {todos.map((todo) => (
-                <div
+                <TodoCard
                   key={todo.id}
-                  className={`todo-card ${
-                    todo.status === "completed" ? "completed-card" : ""
-                  }`}
-                >
-                  <div className="todo-card-header">
-                    <h4>{todo.title}</h4>
-                    <span className={`status ${todo.status}`}>
-                      {todo.status}
-                    </span>
-                  </div>
-
-                  <p>{todo.description || "No description added"}</p>
-
-                  <div className="todo-actions">
-                    <button onClick={() => handleStatusChange(todo)}>
-                      {todo.status === "completed"
-                        ? "Mark Pending"
-                        : "Mark Completed"}
-                    </button>
-
-                    <button className="edit-btn" onClick={() => handleEdit(todo)}>
-                      Edit
-                    </button>
-
-                    <button
-                      className="delete-btn"
-                      onClick={() => handleDelete(todo.id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
+                  todo={todo}
+                  onEdit={handleEdit}
+                  onDelete={setDeleteId}
+                  onStatusChange={handleStatusChange}
+                />
               ))}
             </div>
           )}
         </section>
       </main>
+
+      {deleteId && (
+        <ConfirmModal
+          message="Are you sure you want to delete this todo?"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteId(null)}
+        />
+      )}
     </div>
   );
 }
