@@ -23,6 +23,7 @@ function Register() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
     setError("");
     setSuccess("");
 
@@ -31,29 +32,56 @@ function Register() {
       return;
     }
 
+    // Password validation
+    if (formData.password.length < 6) {
+      setError("Password must contain at least 6 characters");
+      return;
+    }
+
     try {
       const response = await api.post("/auth/register", formData);
+
       setSuccess(response.data.message);
 
       setTimeout(() => {
         navigate("/login");
       }, 1000);
+
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+      setError(
+        err.response?.data?.message || "Registration failed"
+      );
     }
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+    });
+
+    setError("");
+    setSuccess("");
+
+    navigate("/login");
   };
 
   return (
     <div className="auth-container">
       <div className="auth-card">
         <h2>Create Account</h2>
-        <p className="subtitle">Register to manage your todos</p>
+
+        <p className="subtitle">
+          Register to manage your todos
+        </p>
 
         {error && <div className="error-box">{error}</div>}
         {success && <div className="success-box">{success}</div>}
 
         <form onSubmit={handleRegister}>
           <label>Name</label>
+
           <input
             type="text"
             name="name"
@@ -63,6 +91,7 @@ function Register() {
           />
 
           <label>Email</label>
+
           <input
             type="email"
             name="email"
@@ -72,19 +101,34 @@ function Register() {
           />
 
           <label>Password</label>
+
           <input
             type="password"
             name="password"
             placeholder="Enter password"
             value={formData.password}
             onChange={handleChange}
+            minLength={6}
           />
 
-          <button type="submit">Register</button>
+          <div className="form-buttons">
+            <button type="submit">
+              Register
+            </button>
+
+            <button
+              type="button"
+              className="cancel-btn"
+              onClick={handleCancel}
+            >
+              Cancel
+            </button>
+          </div>
         </form>
 
         <p className="bottom-text">
-          Already have an account? <Link to="/login">Login</Link>
+          Already have an account?{" "}
+          <Link to="/login">Login</Link>
         </p>
       </div>
     </div>
