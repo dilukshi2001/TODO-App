@@ -2,15 +2,17 @@ function ConfirmModal({ message, onConfirm, onCancel }) {
   return (
     <div className="modal-overlay">
       <div className="modal-box">
-        <h3>Confirm Action</h3>
+        <h3 className="mb-3">Confirm Action</h3>
+
         <p>{message}</p>
 
         <div className="modal-actions">
-          <button className="delete-btn" onClick={onConfirm}>
-            Yes, Delete
+          <button className="btn btn-danger" onClick={onConfirm}>
+            Yes
           </button>
-          <button className="cancel-btn" onClick={onCancel}>
-            Cancel
+
+          <button className="btn btn-secondary" onClick={onCancel}>
+            No
           </button>
         </div>
       </div>

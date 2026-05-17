@@ -11,27 +11,27 @@ function Navbar() {
   };
 
   return (
-    <nav className="navbar">
+    <nav className="navbar d-flex justify-content-between align-items-center">
       <div>
-        <h2>Todo Manager</h2>
+        <h2 className="mb-1">Todo Manager</h2>
         <p>Hello, {user?.name}</p>
       </div>
 
       <div className="nav-links">
-        <Link className="nav-btn dashboard-btn" to="/dashboard" title="Dashboard">
-           <span>Dashboard</span>
+        <Link className="nav-btn dashboard-btn" to="/dashboard">
+          Dashboard
         </Link>
 
-        <Link className="nav-btn add-btn" to="/add-todo" title="Add Todo">
-           <span>Add</span>
+        <Link className="nav-btn add-btn" to="/add-todo">
+          Add
         </Link>
 
-        <Link className="nav-btn completed-btn" to="/past-todos" title="Completed Todos">
-           <span>Completed</span>
+        <Link className="nav-btn completed-btn" to="/past-todos">
+          Completed
         </Link>
 
-        <button className="nav-icon-btn logout-small" onClick={handleLogout}>
-           <span>Logout</span>
+        <button className="nav-btn logout-small" onClick={handleLogout}>
+          Logout
         </button>
       </div>
     </nav>

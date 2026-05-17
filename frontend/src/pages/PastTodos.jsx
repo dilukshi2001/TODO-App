@@ -3,15 +3,18 @@ import api from "../api/axios";
 import Navbar from "../components/Navbar";
 import TodoCard from "../components/TodoCard";
 import AlertMessage from "../components/AlertMessage";
+import ConfirmModal from "../components/ConfirmModal";
 
 function PastTodos() {
   const [todos, setTodos] = useState([]);
   const [error, setError] = useState("");
+  const [deleteId, setDeleteId] = useState(null);
 
   const fetchPastTodos = async () => {
     try {
       const response = await api.get("/todos?view=past");
       setTodos(response.data);
+
     } catch {
       setError("Failed to load completed todos");
     }
@@ -32,8 +35,22 @@ function PastTodos() {
       });
 
       fetchPastTodos();
+
     } catch {
       setError("Status update failed");
+    }
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await api.delete(`/todos/${deleteId}`);
+
+      setDeleteId(null);
+
+      fetchPastTodos();
+
+    } catch {
+      setError("Delete failed");
     }
   };
 
@@ -44,12 +61,17 @@ function PastTodos() {
       <main className="page-content">
         <section className="todo-list-card">
           <h3>Completed Todos</h3>
-          <p className="small-text">All completed tasks are shown here</p>
+
+          <p className="small-text">
+            All completed tasks are shown here
+          </p>
 
           <AlertMessage message={error} />
 
           {todos.length === 0 ? (
-            <p className="empty-text">No completed todos found</p>
+            <p className="empty-text">
+              No completed todos found
+            </p>
           ) : (
             <div className="todo-grid">
               {todos.map((todo) => (
@@ -57,7 +79,7 @@ function PastTodos() {
                   key={todo.id}
                   todo={todo}
                   onEdit={() => {}}
-                  onDelete={() => {}}
+                  onDelete={setDeleteId}
                   onStatusChange={handleStatusChange}
                 />
               ))}
@@ -65,6 +87,14 @@ function PastTodos() {
           )}
         </section>
       </main>
+
+      {deleteId && (
+        <ConfirmModal
+          message="Are you sure you want to delete this todo?"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteId(null)}
+        />
+      )}
     </div>
   );
 }

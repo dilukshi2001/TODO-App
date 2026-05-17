@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import AlertMessage from "../components/AlertMessage";
 
 function Register() {
   const navigate = useNavigate();
@@ -27,19 +28,27 @@ function Register() {
     setError("");
     setSuccess("");
 
-    if (!formData.name || !formData.email || !formData.password) {
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password
+    ) {
       setError("Please fill all fields");
       return;
     }
 
-    // Password validation
     if (formData.password.length < 6) {
-      setError("Password must contain at least 6 characters");
+      setError(
+        "Password must contain at least 6 characters"
+      );
       return;
     }
 
     try {
-      const response = await api.post("/auth/register", formData);
+      const response = await api.post(
+        "/auth/register",
+        formData
+      );
 
       setSuccess(response.data.message);
 
@@ -49,86 +58,110 @@ function Register() {
 
     } catch (err) {
       setError(
-        err.response?.data?.message || "Registration failed"
+        err.response?.data?.message ||
+        "Registration failed"
       );
     }
   };
 
   const handleCancel = () => {
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-    });
-
-    setError("");
-    setSuccess("");
-
     navigate("/login");
   };
 
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2>Create Account</h2>
+
+        <h2 className="text-center">
+          Create Account
+        </h2>
 
         <p className="subtitle">
           Register to manage your todos
         </p>
 
-        {error && <div className="error-box">{error}</div>}
-        {success && <div className="success-box">{success}</div>}
+        <AlertMessage
+          type="error"
+          message={error}
+        />
+
+        <AlertMessage
+          type="success"
+          message={success}
+        />
 
         <form onSubmit={handleRegister}>
-          <label>Name</label>
 
-          <input
-            type="text"
-            name="name"
-            placeholder="Enter your name"
-            value={formData.name}
-            onChange={handleChange}
-          />
+          <div className="mb-3">
+            <label className="form-label fw-semibold">
+              Name
+            </label>
 
-          <label>Email</label>
+            <input
+              className="form-control py-2"
+              type="text"
+              name="name"
+              placeholder="Enter your name"
+              value={formData.name}
+              onChange={handleChange}
+            />
+          </div>
 
-          <input
-            type="email"
-            name="email"
-            placeholder="Enter your email"
-            value={formData.email}
-            onChange={handleChange}
-          />
+          <div className="mb-3">
+            <label className="form-label fw-semibold">
+              Email
+            </label>
 
-          <label>Password</label>
+            <input
+              className="form-control py-2"
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={handleChange}
+            />
+          </div>
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Enter password"
-            value={formData.password}
-            onChange={handleChange}
-            minLength={6}
-          />
+          <div className="mb-4">
+            <label className="form-label fw-semibold">
+              Password
+            </label>
+
+            <input
+              className="form-control py-2"
+              type="password"
+              name="password"
+              placeholder="Enter password"
+              value={formData.password}
+              onChange={handleChange}
+              minLength={6}
+            />
+          </div>
 
           <div className="form-buttons">
-            <button type="submit">
+            <button
+              className="btn btn-primary py-2"
+              type="submit"
+            >
               Register
             </button>
 
             <button
               type="button"
-              className="cancel-btn"
+              className="btn btn-secondary py-2"
               onClick={handleCancel}
             >
               Cancel
             </button>
           </div>
+
         </form>
 
         <p className="bottom-text">
           Already have an account?{" "}
-          <Link to="/login">Login</Link>
+          <Link to="/login">
+            Login
+          </Link>
         </p>
       </div>
     </div>
